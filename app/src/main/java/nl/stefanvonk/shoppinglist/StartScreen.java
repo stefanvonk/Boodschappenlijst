@@ -22,7 +22,6 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 public class StartScreen extends AppCompatActivity {
@@ -66,12 +65,13 @@ public class StartScreen extends AppCompatActivity {
                 String selectedItem = ((TextView) view).getText().toString();
                 Intent intent = new Intent(StartScreen.this, ShoppingList.class);
                 Bundle b = new Bundle();
-                b.putString("keuze", selectedItem); 	// parameter passing
+                b.putString("keuze", selectedItem); 	// parameter passing, geef aangeklikte lijst mee
                 intent.putExtras(b); 	// voeg string toe aan intent
                 startActivity(intent);	// start nieuw scherm
             }
         });
 
+        // add button voor offline toevoegen, deze wordt overschreven bij connectie met database
         FloatingActionButton actie_add = (FloatingActionButton) findViewById(R.id.actie_add);
         actie_add.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -92,7 +92,7 @@ public class StartScreen extends AppCompatActivity {
             public void onDataChange(DataSnapshot dataSnapshot) {
                 userList.clear();
 
-                // set twee standaardlijsten
+                // set standaardlijst
                 userList.add("Lokale boodschappenlijst");
                 adapter = new ArrayAdapter(StartScreen.this, android.R.layout.simple_list_item_1, userList);
                 lv = (ListView) findViewById(R.id.listView);
@@ -118,12 +118,13 @@ public class StartScreen extends AppCompatActivity {
                     }
                 });
 
-                // set longclicklistener om elementen uit de lijst te verwijderen
+                // set longclicklistener (ingedrukt houden) om elementen uit de lijst te verwijderen
                 lv.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
                     public boolean onItemLongClick(AdapterView<?> parent, View view, final int position, long id) {
                         final String selectedItem = ((TextView) view).getText().toString();
+                        // als het niet de lokale lijst is, voer dan de verwijder functie uit
                         if(!selectedItem.equals("Lokale boodschappenlijst")) {
-                            removeShoppingList(selectedItem, position);
+                            removeShoppingList(selectedItem);
                         } else{
                             Snackbar.make(findViewById(R.id.actie_add), "De lokale boodschappelijst kan niet verwijderd worden", Snackbar.LENGTH_LONG)
                                     .setAction("Action", null).show();
@@ -132,7 +133,7 @@ public class StartScreen extends AppCompatActivity {
                     }
                 });
 
-                // plusbutton voor nieuwe lijst instellen
+                // add button overschrijven voor nieuwe online lijst maken
                 FloatingActionButton actie_add = (FloatingActionButton) findViewById(R.id.actie_add);
                 actie_add.setOnClickListener(new View.OnClickListener() {
                     @Override
@@ -142,9 +143,10 @@ public class StartScreen extends AppCompatActivity {
                 });
             }
 
+            // wanneer de databaseconnectie niet werkt
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
-                // Failed message
+                // failed message
                 Snackbar.make(findViewById(R.id.actie_add), "Database kan niet gelezen worden", Snackbar.LENGTH_LONG)
                         .setAction("Action", null).show();
             }
@@ -161,7 +163,7 @@ public class StartScreen extends AppCompatActivity {
 
     // add boodschappenlijst
     public void addShoppingList(){
-        // dmv alert dialog
+        // door middel van een alert dialog
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Boodschappenlijst toevoegen");
         final EditText input = new EditText(this);
@@ -169,6 +171,7 @@ public class StartScreen extends AppCompatActivity {
         builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
+                // input string
                 String input_lijst = hoofdletterToevoegen(input.getText().toString());
 
                 if(!userList.contains(input_lijst)) {
@@ -186,6 +189,7 @@ public class StartScreen extends AppCompatActivity {
                     Snackbar.make(findViewById(R.id.actie_add), "De lijst " + input_lijst + " is toegevoegd", Snackbar.LENGTH_LONG)
                             .setAction("Action", null).show();
                 } else{
+                    // melding dat toevoegen niet is gelukt
                     Snackbar.make(findViewById(R.id.actie_add), "De lijst " + input_lijst + " bestaat al", Snackbar.LENGTH_LONG)
                             .setAction("Action", null).show();
                 }
@@ -197,16 +201,18 @@ public class StartScreen extends AppCompatActivity {
                 dialog.cancel();
             }
         });
+        // show alert dialog
         builder.show();
     }
 
-    public void removeShoppingList(final String selectedItem, final int position){
+    // verwijder online boodschappenlijst
+    public void removeShoppingList(final String selectedItem){
         AlertDialog.Builder builder = new AlertDialog.Builder(StartScreen.this);
         builder.setTitle(selectedItem + " verwijderen?");
         builder.setPositiveButton("Ja", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                // Read from the database
+                // zoek het juiste id om te verwijderen in de database door de database te lezen
                 databaseShopping.addValueEventListener(new ValueEventListener() {
                     @Override
                     public void onDataChange(DataSnapshot dataSnapshot) {
@@ -214,11 +220,13 @@ public class StartScreen extends AppCompatActivity {
                             String name = idSnapshot.child("lijstName").getValue(String.class);
                             if (name.equals(selectedItem)) {
                                 lijstId = idSnapshot.child("lijstId").getValue(String.class);
+                                // als het lijstId klopt, verwijder de lijst uit de database
                                 if(!lijstId.equals("leeg")){
                                     databaseShopping.child(lijstId).removeValue();
                                     Snackbar.make(findViewById(R.id.actie_add), "De online boodschappelijst " + selectedItem + " is verwijderd", Snackbar.LENGTH_LONG)
                                             .setAction("Action", null).show();
                                 } else{
+                                    // als het lijstId niet klopt geef een melding dat het niet gelukt is
                                     Snackbar.make(findViewById(R.id.actie_add), "De online boodschappelijst " + selectedItem + " kan niet worden verwijderd", Snackbar.LENGTH_LONG)
                                             .setAction("Action", null).show();
                                 }
@@ -226,9 +234,10 @@ public class StartScreen extends AppCompatActivity {
                         }
                     }
 
+                    // wanneer de databaseconnectie niet werkt
                     @Override
                     public void onCancelled(@NonNull DatabaseError databaseError) {
-                        // Failed to read value
+                        // failed to read value
                         Snackbar.make(findViewById(R.id.actie_add), "Database kan niet gelezen worden", Snackbar.LENGTH_LONG)
                                 .setAction("Action", null).show();
                     }
@@ -241,6 +250,7 @@ public class StartScreen extends AppCompatActivity {
                 dialog.cancel();
             }
         });
+        // show alert dialog
         builder.show();
     }
 }
