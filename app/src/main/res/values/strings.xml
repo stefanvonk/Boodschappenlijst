@@ -1,0 +1,12 @@
+<resources>
+    <string name="app_name">Boodschappenlijst</string>
+    <string name="action_shop_text">Winkelen -></string>
+    <string name="action_shop">Shop</string>
+    <string name="done">Done</string>
+    <string name="winkelen">"Winkelen →"</string>
+    <string name="title_activity_end_screen">EndScreen</string>
+    <string name="startscreen">Kies hieronder uw boodschappenlijst of voeg een nieuwe online boodschappenlijst toe. De eerste is uw lokale lijst, de eventuele andere zijn online boodschappenlijsten. De online lijsten kunt u verwijderen door ze ingedrukt te houden.</string>
+    <string name="shoppinglist">Voeg hier producten toe in uw boodschappenlijst. Om te verwijderen tikt u op het desbetreffende product. Als de boodschappenlijst gevuld is kunt u rechtsboven starten met winkelen.</string>
+    <string name="shopping">Producten die u heeft verzameld kunt u afvinken door er op te tikken in de onderstaande lijst. Als u klaar bent met winkelen tikt u op de knop doorgaan voor een overzicht met uw resultaten.</string>
+    <string name="end_screen">De onderstaande grafiek bevat de resultaten van het boodschappen doen. De eerste balk geeft weer hoe veel producten u van uw boodschappenlijst heeft afgevinkt, de tweede balk hoe veel producten u van uw lijst niet heeft afgevinkt.</string>
+</resources>
